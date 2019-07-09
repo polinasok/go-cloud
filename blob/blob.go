@@ -20,28 +20,45 @@
 // interfaces from the io package), deleting blobs, and listing blobs in a
 // bucket.
 //
-// Subpackages contain distinct implementations of blob for various providers,
-// including Cloud and on-prem solutions. For example, "fileblob" supports
-// blobs backed by a filesystem. Your application should import one of these
-// provider-specific subpackages and use its exported function(s) to create a
-// *Bucket; do not use the NewBucket function in this package. For example:
+// Subpackages contain distinct implementations of blob for various providers
+// and services, including Cloud and on-prem solutions. You can develop your
+// application locally using fileblob (backed by a filesystem), then deploy it
+// to multiple Cloud providers with minimal reconfiguration of your
+// initialization code to switch between different backing services.
 //
-//  bucket, err := fileblob.OpenBucket("path/to/dir", nil)
-//  if err != nil {
-//      return fmt.Errorf("could not open bucket: %v", err)
-//  }
-//  buf, err := bucket.ReadAll(context.Background(), "myfile.txt")
-//  ...
+// To open a connection to an existing blob, start with a blank import of the
+// service-specific driver package, then use blob.OpenBucket and a URL pointing
+// to the blob. You will then write your application code using the *Bucket type.
 //
-// Then, write your application code using the *Bucket type. You can easily
-// reconfigure your initialization code to choose a different provider.
-// You can develop your application locally using fileblob, or deploy it to
-// multiple Cloud providers. You may find http://github.com/google/wire useful
-// for managing your initialization code.
+//   import _ "gocloud.dev/blob/fileblob"
+//   
+//   ctx := context.Background()
+//   bucket, err := blob.OpenBucket(ctx, "file:///path/to/dir")
+//   if err != nil {
+//       return fmt.Errorf("could not open bucket: %v", err)
+//   }
+//   defer bucket.Close()
+//   // bucket is a *blob.Bucket
+//   buf, err := bucket.ReadAll(ctx, "myfile.txt")
+//   ...
 //
-// Alternatively, you can construct a *Bucket via a URL and OpenBucket.
 // See https://gocloud.dev/concepts/urls/ for more information.
 //
+// Alternatively, if you need fine-grained control over the connection settings,
+// your application can import one of the driver packages and use its exported
+// function(s) directly to open a *Bucket.
+//
+//   import "gocloud.dev/blob/fileblob"
+//   
+//   bucket, err := fileblob.OpenBucket("path/to/dir", nil)
+//   ...
+// 
+// See https://gocloud.dev/howto/blob/open-bucket/ for more information.
+// You may also find http://github.com/google/wire useful
+// for managing your initialization code.
+//
+// Do not use NewBucket function, which is intended for use by driver implementations.
+//   
 //
 // Errors
 //
